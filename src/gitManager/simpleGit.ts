@@ -79,10 +79,11 @@ export class SimpleGit extends GitManager {
                 .filter((e) => e.working_dir !== " ")
                 .map((e) => {
                     const res = this.formatPath(e);
-
                     return <FileStatusResult>{
                         path: res.path,
-                        from: res.from,
+                        from: status.renamed.find(
+                            (status) => status.to === e.path
+                        ),
                         working_dir:
                             e.working_dir === "?" ? "U" : e.working_dir,
                         vault_path: this.getVaultPath(res.path),
@@ -94,7 +95,9 @@ export class SimpleGit extends GitManager {
                     const res = this.formatPath(e, e.index === "R");
                     return <FileStatusResult>{
                         path: res.path,
-                        from: res.from,
+                        from: status.renamed.find(
+                            (status) => status.to === res.path
+                        )?.from,
                         index: e.index,
                         vault_path: this.getVaultPath(res.path),
                     };

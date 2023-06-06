@@ -259,12 +259,12 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     "Available placeholders: {{date}}" +
                         " (see below), {{hostname}} (see below) and {{numFiles}} (number of changed files in the commit)"
                 )
-                .addText((text) =>
+                .addTextArea((text) =>
                     text
                         .setPlaceholder("vault backup: {{date}}")
                         .setValue(plugin.settings.autoCommitMessage)
                         .onChange((value) => {
-                            plugin.settings.autoCommitMessage = value;
+                            plugin.settings.autoCommitMessage = value.trim();
                             plugin.saveSettings();
                         })
                 );
@@ -278,7 +278,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                     "Available placeholders: {{date}}" +
                         " (see below), {{hostname}} (see below) and {{numFiles}} (number of changed files in the commit)"
                 )
-                .addText((text) =>
+                .addTextArea((text) =>
                     text
                         .setPlaceholder("vault backup: {{date}}")
                         .setValue(
@@ -287,7 +287,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                                 : ""
                         )
                         .onChange((value) => {
-                            plugin.settings.commitMessage = value;
+                            plugin.settings.commitMessage = value.trim();
                             plugin.saveSettings();
                         })
                 );
@@ -341,6 +341,17 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                             plugin.saveSettings();
                         })
                 );
+
+            new Setting(this.containerEl)
+                .setName("OpenAI API Key")
+                .addText((field) => {
+                    field
+                        .setValue(this.settings.openaiApiKey)
+                        .onChange((value) => {
+                            plugin.settings.openaiApiKey = value;
+                            plugin.saveSettings();
+                        });
+                });
 
             containerEl.createEl("br");
             containerEl.createEl("h3", { text: "Backup" });

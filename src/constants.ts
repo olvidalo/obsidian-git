@@ -35,6 +35,7 @@ export const DEFAULT_SETTINGS: Omit<ObsidianGitSettings, "autoCommitMessage"> =
         submoduleRecurseCheckout: false,
         gitDir: "",
         showFileMenu: true,
+        openaiApiKey: "",
         lineAuthor: {
             show: false,
             followMovement: "inactive",
