@@ -10,6 +10,8 @@ import {
     UnstagedFile,
 } from "../types";
 
+import { Configuration as OpenAIConfiguration, OpenAIApi } from "openai";
+
 export abstract class GitManager {
     readonly plugin: ObsidianGit;
     readonly app: App;
@@ -224,6 +226,49 @@ export abstract class GitManager {
         return res;
     }
 
+    async getChangeSummary(
+        status: FileStatusResult,
+        diff: string
+    ): Promise<string> {
+        const prompts: Record<string, string> = {
+            A: 'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been changed, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of the changes to the file. The summary should state the core themes, actions, and details within the content. The summary should state what was changed in which section, followed by "in `filename`". The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the file, rather than a generic description. Don\'t mention if no changes were made. If there is no content in the diff, just state the file name, path, format, and say that the file was added.',
+            M: 'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been added, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of the added file. The summary should state the core themes, actions, and details within the content. The filename should be surrounded with backticks and formatted in the following manner: "Added `filename` with" followed by the summary. The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the file, rather than a generic description. ',
+            D: 'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been deleted, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of what was in the file. The summary should state the core themes, actions, and details within the content. The filename is surrounded with backticks and formatted in the following manner: "Deleted `filename` which contained" followed by the summary. The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the deleted file, rather than a generic description.',
+        };
+
+        let statusDesc;
+
+        if (status.index === "R") {
+            statusDesc = `Renamed \`${status.from}\` to \`${status.path}\``;
+        } else if (prompts.hasOwnProperty(status.index)) {
+            const conf = new OpenAIConfiguration({
+                apiKey: this.plugin.settings.openaiApiKey,
+            });
+            const openai = new OpenAIApi(conf);
+            try {
+                const completionResponse = await openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "user",
+                            content: prompts[status.index] + "\n\n" + diff,
+                        },
+                    ],
+                    temperature: 0.5,
+                    max_tokens: 150,
+                });
+                statusDesc =
+                    completionResponse?.data?.choices?.[0]?.message?.content?.trim();
+            } catch (e) {
+                console.error("Error generating prompt description: ", e);
+            }
+        }
+
+        return statusDesc
+            ? `- ${statusDesc}`
+            : `${status.index} ${status.path}`;
+    }
+
     async formatCommitMessage(template: string): Promise<string> {
         let status: Status | undefined;
         if (template.includes("{{numFiles}}")) {
@@ -256,6 +301,23 @@ export abstract class GitManager {
             const files = chunks.join(", ");
 
             template = template.replace("{{files}}", files);
+        }
+
+        if (template.includes("{{changeSummaries}}")) {
+            const statusVal = status ?? (await this.status());
+            const changeSummaryPromises = statusVal.staged
+                .filter(
+                    (status) => !status.path.startsWith(app.vault.configDir)
+                )
+                .map(async (e) => {
+                    const diff = await this.getDiffString(e.path, true);
+                    return await this.getChangeSummary(e, diff);
+                });
+            const changeSummaries = await Promise.all(changeSummaryPromises);
+            template = template.replace(
+                "{{changeSummaries}}",
+                changeSummaries.join("\n\n")
+            );
         }
 
         const moment = (window as any).moment;

@@ -43,6 +43,7 @@ export interface ObsidianGitSettings {
     setLastSaveToLastCommit: boolean;
     gitDir: string;
     showFileMenu: boolean;
+    openaiApiKey: string;
 }
 
 /**

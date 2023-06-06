@@ -26,6 +26,7 @@ import { GeneralModal } from "../ui/modals/generalModal";
 import { splitRemoteBranch, worthWalking } from "../utils";
 import { GitManager } from "./gitManager";
 import { MyAdapter } from "./myAdapter";
+import { isBinaryFileSync } from "isbinaryfile";
 
 export class IsomorphicGit extends GitManager {
     private readonly FILE = 0;
@@ -1040,7 +1041,12 @@ export class IsomorphicGit extends GitManager {
                 filepath: filePath,
                 oid: hash,
             })
-                .then((headBlob) => new TextDecoder().decode(headBlob.blob))
+                .then((headBlob) =>
+                    headBlob?.blob &&
+                    isBinaryFileSync(Buffer.from(headBlob.blob))
+                        ? ""
+                        : new TextDecoder().decode(headBlob.blob)
+                )
                 .catch((err) => {
                     if (err instanceof git.Errors.NotFoundError)
                         return undefined;
@@ -1056,7 +1062,12 @@ export class IsomorphicGit extends GitManager {
                 filepath: filePath,
                 oid: commit.commit.parent.first()!,
             })
-                .then((headBlob) => new TextDecoder().decode(headBlob.blob))
+                .then((headBlob) =>
+                    headBlob?.blob &&
+                    isBinaryFileSync(Buffer.from(headBlob.blob))
+                        ? ""
+                        : new TextDecoder().decode(headBlob.blob)
+                )
                 .catch((err) => {
                     if (err instanceof git.Errors.NotFoundError)
                         return undefined;
@@ -1078,7 +1089,10 @@ export class IsomorphicGit extends GitManager {
                 map,
             })
         ).first();
-        const stagedContent = new TextDecoder().decode(stagedBlob);
+        const stagedContent =
+            stagedBlob && isBinaryFileSync(Buffer.from(stagedBlob))
+                ? ""
+                : new TextDecoder().decode(stagedBlob);
 
         if (stagedChanges) {
             const headContent = await this.resolveRef("HEAD")
@@ -1089,7 +1103,12 @@ export class IsomorphicGit extends GitManager {
                         oid: oid,
                     })
                 )
-                .then((headBlob) => new TextDecoder().decode(headBlob.blob))
+                .then((headBlob) =>
+                    headBlob?.blob &&
+                    isBinaryFileSync(Buffer.from(headBlob.blob))
+                        ? ""
+                        : new TextDecoder().decode(headBlob.blob)
+                )
                 .catch((err) => {
                     if (err instanceof git.Errors.NotFoundError)
                         return undefined;
