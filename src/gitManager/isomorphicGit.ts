@@ -26,7 +26,6 @@ import { GeneralModal } from "../ui/modals/generalModal";
 import { splitRemoteBranch, worthWalking } from "../utils";
 import { GitManager } from "./gitManager";
 import { MyAdapter } from "./myAdapter";
-import { isBinaryFileSync } from "isbinaryfile";
 
 export class IsomorphicGit extends GitManager {
     private readonly FILE = 0;
@@ -1023,6 +1022,21 @@ export class IsomorphicGit extends GitManager {
         stagedChanges = false,
         hash?: string
     ): Promise<string> {
+        const isBinary = (data?: Uint8Array) => {
+            if (!data) {
+                return false;
+            }
+
+            const n = Math.min(1024, data.length);
+            for (let i = 0; i < n; i++) {
+                if (data[i] === 0) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
         const vaultPath = this.getVaultPath(filePath);
 
         const map: WalkerMap = async (file, [A]) => {
@@ -1042,8 +1056,7 @@ export class IsomorphicGit extends GitManager {
                 oid: hash,
             })
                 .then((headBlob) =>
-                    headBlob?.blob &&
-                    isBinaryFileSync(Buffer.from(headBlob.blob))
+                    isBinary(headBlob.blob)
                         ? ""
                         : new TextDecoder().decode(headBlob.blob)
                 )
@@ -1063,8 +1076,7 @@ export class IsomorphicGit extends GitManager {
                 oid: commit.commit.parent.first()!,
             })
                 .then((headBlob) =>
-                    headBlob?.blob &&
-                    isBinaryFileSync(Buffer.from(headBlob.blob))
+                    isBinary(headBlob.blob)
                         ? ""
                         : new TextDecoder().decode(headBlob.blob)
                 )
@@ -1089,10 +1101,9 @@ export class IsomorphicGit extends GitManager {
                 map,
             })
         ).first();
-        const stagedContent =
-            stagedBlob && isBinaryFileSync(Buffer.from(stagedBlob))
-                ? ""
-                : new TextDecoder().decode(stagedBlob);
+        const stagedContent = isBinary(stagedBlob)
+            ? ""
+            : new TextDecoder().decode(stagedBlob);
 
         if (stagedChanges) {
             const headContent = await this.resolveRef("HEAD")
@@ -1104,8 +1115,7 @@ export class IsomorphicGit extends GitManager {
                     })
                 )
                 .then((headBlob) =>
-                    headBlob?.blob &&
-                    isBinaryFileSync(Buffer.from(headBlob.blob))
+                    isBinary(headBlob.blob)
                         ? ""
                         : new TextDecoder().decode(headBlob.blob)
                 )
