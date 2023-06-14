@@ -231,9 +231,9 @@ export abstract class GitManager {
         diff: string
     ): Promise<string> {
         const prompts: Record<string, string> = {
-            M: 'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been changed, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of the changes to the file. The summary should state the core themes, actions, and details within the content. The summary should state what was changed in which section, followed by "in `filename`". The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the file, rather than a generic description. Don\'t mention if no changes were made. If there is no content in the diff, just state the file name, path, format, and say that the file was added.',
-            A: 'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been added, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of the added file. The summary should state the core themes, actions, and details within the content. The filename should be surrounded with backticks and formatted in the following manner: "Added `filename` with" followed by the summary. The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the file, rather than a generic description. ',
-            D: 'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been deleted, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of what was in the file. The summary should state the core themes, actions, and details within the content. The filename is surrounded with backticks and formatted in the following manner: "Deleted `filename` which contained" followed by the summary. The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the deleted file, rather than a generic description.',
+            M: this.plugin.settings.modifiedPrompt,
+            A: this.plugin.settings.addedPrompt,
+            D: this.plugin.settings.deletedPrompt,
         };
 
         let statusDesc;
@@ -247,7 +247,7 @@ export abstract class GitManager {
             const openai = new OpenAIApi(conf);
             try {
                 const completionResponse = await openai.createChatCompletion({
-                    model: "gpt-3.5-turbo",
+                    model: this.plugin.settings.openaiModel,
                     messages: [
                         {
                             role: "user",
@@ -264,9 +264,15 @@ export abstract class GitManager {
             }
         }
 
+        const words: Record<string, string> = {
+            M: "Modified ",
+            A: "Added ",
+            D: "Deleted ",
+        };
+
         return statusDesc
-            ? `- ${statusDesc}`
-            : `${status.index} ${status.path}`;
+            ? statusDesc
+            : `${words[status.index]} ${status.path}`;
     }
 
     async formatCommitMessage(template: string): Promise<string> {
@@ -314,6 +320,10 @@ export abstract class GitManager {
                     return await this.getChangeSummary(e, diff);
                 });
             const changeSummaries = await Promise.all(changeSummaryPromises);
+            if (changeSummaries.length > 1) {
+                changeSummaries.map((changeSummary) => `- ${changeSummary}`);
+            }
+
             template = template.replace(
                 "{{changeSummaries}}",
                 changeSummaries.join("\n\n")

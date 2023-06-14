@@ -342,6 +342,9 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                         })
                 );
 
+            containerEl.createEl("br");
+            containerEl.createEl("h3", { text: "Commit message generation" });
+
             new Setting(this.containerEl)
                 .setName("OpenAI API Key")
                 .addText((field) => {
@@ -349,6 +352,54 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                         .setValue(this.settings.openaiApiKey)
                         .onChange((value) => {
                             plugin.settings.openaiApiKey = value;
+                            plugin.saveSettings();
+                        });
+                });
+
+            new Setting(this.containerEl)
+                .setName("OpenAI Model")
+                .addText((field) => {
+                    field
+                        .setValue(this.settings.openaiModel)
+                        .setPlaceholder(this.settings.openaiModel)
+                        .onChange((value) => {
+                            plugin.settings.openaiModel = value;
+                            plugin.saveSettings();
+                        });
+                });
+
+            new Setting(this.containerEl)
+                .setName("Prompt for added files")
+                .addTextArea((field) => {
+                    field
+                        .setPlaceholder(this.settings.addedPrompt)
+                        .setValue(this.settings.addedPrompt)
+                        .onChange((value) => {
+                            plugin.settings.addedPrompt = value;
+                            plugin.saveSettings();
+                        });
+                });
+
+            new Setting(this.containerEl)
+                .setName("Prompt for modified files")
+                .addTextArea((field) => {
+                    field
+                        .setPlaceholder(this.settings.modifiedPrompt)
+                        .setValue(this.settings.modifiedPrompt)
+                        .onChange((value) => {
+                            plugin.settings.modifiedPrompt = value;
+                            plugin.saveSettings();
+                        });
+                });
+
+            new Setting(this.containerEl)
+                .setName("Prompt for deleted files")
+                .addTextArea((field) => {
+                    field
+                        .setPlaceholder(this.settings.deletedPrompt)
+                        .setValue(this.settings.deletedPrompt)
+                        .onChange((value) => {
+                            plugin.settings.deletedPrompt = value;
                             plugin.saveSettings();
                         });
                 });

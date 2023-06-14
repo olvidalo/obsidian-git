@@ -44,6 +44,10 @@ export interface ObsidianGitSettings {
     gitDir: string;
     showFileMenu: boolean;
     openaiApiKey: string;
+    openaiModel: string;
+    modifiedPrompt: string;
+    addedPrompt: string;
+    deletedPrompt: string;
 }
 
 /**
