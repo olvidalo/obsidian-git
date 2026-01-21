@@ -384,6 +384,21 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 );
 
             new Setting(containerEl)
+                .setName("API Base URL")
+                .setDesc(
+                    "Custom endpoint for OpenAI-compatible APIs (e.g., GWDG SAIA). Leave empty for default OpenAI."
+                )
+                .addText((text) =>
+                    text
+                        .setPlaceholder("https://api.openai.com/v1")
+                        .setValue(plugin.settings.openaiBaseUrl)
+                        .onChange(async (value) => {
+                            plugin.settings.openaiBaseUrl = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
                 .setName("OpenAI Model")
                 .setDesc("The model to use for generating commit summaries.")
                 .addText((text) =>

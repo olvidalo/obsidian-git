@@ -274,6 +274,7 @@ export abstract class GitManager {
         } else if (prompts.hasOwnProperty(status.index)) {
             const openai = new OpenAI({
                 apiKey: this.plugin.settings.openaiApiKey,
+                baseURL: this.plugin.settings.openaiBaseUrl || undefined,
                 dangerouslyAllowBrowser: true,
             });
             try {
