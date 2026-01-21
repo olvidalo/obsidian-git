@@ -1,5 +1,4 @@
-import { type App, moment } from "obsidian";
-import OpenAI from "openai";
+import { type App, moment, requestUrl } from "obsidian";
 import type ObsidianGit from "../main";
 import type {
     BranchInfo,
@@ -272,28 +271,33 @@ export abstract class GitManager {
         if (status.index === "R") {
             statusDesc = `Renamed \`${status.from}\` to \`${status.path}\``;
         } else if (prompts.hasOwnProperty(status.index)) {
-            const openai = new OpenAI({
-                apiKey: this.plugin.settings.openaiApiKey,
-                baseURL: this.plugin.settings.openaiBaseUrl || undefined,
-                dangerouslyAllowBrowser: true,
-            });
+            const baseUrl =
+                this.plugin.settings.openaiBaseUrl || "https://api.openai.com/v1";
             try {
-                const completion = await openai.chat.completions.create({
-                    model: this.plugin.settings.openaiModel,
-                    messages: [
-                        {
-                            role: "system",
-                            content: this.plugin.settings.openaiSystemPrompt,
-                        },
-                        {
-                            role: "user",
-                            content: prompts[status.index] + "\n\n" + diff,
-                        },
-                    ],
-                    temperature: 0.5,
-                    max_tokens: this.plugin.settings.openaiMaxTokens,
+                const response = await requestUrl({
+                    url: `${baseUrl}/chat/completions`,
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${this.plugin.settings.openaiApiKey}`,
+                    },
+                    body: JSON.stringify({
+                        model: this.plugin.settings.openaiModel,
+                        messages: [
+                            {
+                                role: "system",
+                                content: this.plugin.settings.openaiSystemPrompt,
+                            },
+                            {
+                                role: "user",
+                                content: prompts[status.index] + "\n\n" + diff,
+                            },
+                        ],
+                        temperature: 0.5,
+                        max_tokens: this.plugin.settings.openaiMaxTokens,
+                    }),
                 });
-                statusDesc = completion?.choices?.[0]?.message?.content?.trim();
+                statusDesc = response?.json?.choices?.[0]?.message?.content?.trim();
             } catch (e) {
                 console.error("Error generating prompt description: ", e);
             }
