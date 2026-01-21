@@ -412,6 +412,19 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 );
 
             new Setting(containerEl)
+                .setName("Max tokens")
+                .setDesc("Maximum number of tokens for each generated summary.")
+                .addText((text) => {
+                    text.inputEl.type = "number";
+                    text.setPlaceholder("150")
+                        .setValue(String(plugin.settings.openaiMaxTokens))
+                        .onChange(async (value) => {
+                            plugin.settings.openaiMaxTokens = Number(value) || 150;
+                            await plugin.saveSettings();
+                        });
+                });
+
+            new Setting(containerEl)
                 .setName("System prompt")
                 .setDesc(
                     "System prompt that sets the behavior for the AI model."

@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: ObsidianGitSettings = {
     openaiApiKey: "",
     openaiBaseUrl: "",
     openaiModel: "gpt-4o-mini",
+    openaiMaxTokens: 150,
     openaiSystemPrompt:
         "You generate concise git commit summaries for Obsidian markdown notes. Be precise, brief, and follow formatting strictly.",
     modifiedPrompt:
