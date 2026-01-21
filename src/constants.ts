@@ -42,6 +42,16 @@ export const DEFAULT_SETTINGS: ObsidianGitSettings = {
     submoduleRecurseCheckout: false,
     gitDir: "",
     showFileMenu: true,
+    openaiApiKey: "",
+    openaiModel: "gpt-4o-mini",
+    openaiSystemPrompt:
+        "You generate concise git commit summaries for Obsidian markdown notes. Be precise, brief, and follow formatting strictly.",
+    modifiedPrompt:
+        'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been changed, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of the changes to the file. The summary should state the core themes, actions, and details within the content. The summary should state what was changed in which section, followed by "in `filename`". The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the file, rather than a generic description. Don\'t mention if no changes were made. If there is no content in the diff, just state the file name, path, format, and say that the file was added.',
+    addedPrompt:
+        'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been added, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of the added file. The summary should state the core themes, actions, and details within the content. The filename should be surrounded with backticks and formatted in the following manner: "Added `filename` with" followed by the summary. The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the file, rather than a generic description. ',
+    deletedPrompt:
+        'Using the provided git diff of one of my markdown-formatted Obsidian notes that has been deleted, I need you to produce a concise and specific summary with a maximum of 1-2 short sentences of what was in the file. The summary should state the core themes, actions, and details within the content. The filename is surrounded with backticks and formatted in the following manner: "Deleted `filename` which contained" followed by the summary. The filename needs to be surrounded by backticks. The summary should offer direct insight into the content of the deleted file, rather than a generic description.',
     authorInHistoryView: "hide",
     dateInHistoryView: false,
     diffStyle: "split",

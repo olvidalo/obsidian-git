@@ -63,6 +63,12 @@ export interface ObsidianGitSettings {
     setLastSaveToLastCommit: boolean;
     gitDir: string;
     showFileMenu: boolean;
+    openaiApiKey: string;
+    openaiModel: string;
+    openaiSystemPrompt: string;
+    modifiedPrompt: string;
+    addedPrompt: string;
+    deletedPrompt: string;
     authorInHistoryView: ShowAuthorInHistoryView;
     dateInHistoryView: boolean;
     diffStyle: "git_unified" | "split";

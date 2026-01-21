@@ -256,7 +256,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 .setName(`Commit message on auto ${commitOrSync}`)
                 .setDesc(
                     "Available placeholders: {{date}}" +
-                        " (see below), {{hostname}} (see below), {{numFiles}} (number of changed files in the commit) and {{files}} (changed files in commit message)."
+                        " (see below), {{hostname}} (see below), {{numFiles}} (number of changed files in the commit), {{files}} (changed files in commit message), and {{changeSummaries}} (AI-generated summaries, requires OpenAI API key)."
                 )
                 .addTextArea((text) => {
                     text.setPlaceholder(
@@ -286,7 +286,7 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 .setName("Commit message on manual commit")
                 .setDesc(
                     "Available placeholders: {{date}}" +
-                        " (see below), {{hostname}} (see below), {{numFiles}} (number of changed files in the commit) and {{files}} (changed files in commit message)."
+                        " (see below), {{hostname}} (see below), {{numFiles}} (number of changed files in the commit), {{files}} (changed files in commit message), and {{changeSummaries}} (AI-generated summaries, requires OpenAI API key)."
                 )
                 .addTextArea((text) => {
                     text.setPlaceholder(
@@ -362,6 +362,92 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                             );
                         new Notice(`${commitMessagePreview}`);
                     })
+                );
+
+            new Setting(containerEl)
+                .setName("AI commit message generation")
+                .setHeading();
+
+            new Setting(containerEl)
+                .setName("OpenAI API Key")
+                .setDesc(
+                    "Required for using {{changeSummaries}} placeholder in commit messages."
+                )
+                .addText((text) =>
+                    text
+                        .setPlaceholder("sk-...")
+                        .setValue(plugin.settings.openaiApiKey)
+                        .onChange(async (value) => {
+                            plugin.settings.openaiApiKey = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
+                .setName("OpenAI Model")
+                .setDesc("The model to use for generating commit summaries.")
+                .addText((text) =>
+                    text
+                        .setPlaceholder("gpt-4o-mini")
+                        .setValue(plugin.settings.openaiModel)
+                        .onChange(async (value) => {
+                            plugin.settings.openaiModel = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
+                .setName("System prompt")
+                .setDesc(
+                    "System prompt that sets the behavior for the AI model."
+                )
+                .addTextArea((text) =>
+                    text
+                        .setValue(plugin.settings.openaiSystemPrompt)
+                        .onChange(async (value) => {
+                            plugin.settings.openaiSystemPrompt = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
+                .setName("Prompt for added files")
+                .setDesc("Prompt used when generating summaries for added files.")
+                .addTextArea((text) =>
+                    text
+                        .setValue(plugin.settings.addedPrompt)
+                        .onChange(async (value) => {
+                            plugin.settings.addedPrompt = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
+                .setName("Prompt for modified files")
+                .setDesc(
+                    "Prompt used when generating summaries for modified files."
+                )
+                .addTextArea((text) =>
+                    text
+                        .setValue(plugin.settings.modifiedPrompt)
+                        .onChange(async (value) => {
+                            plugin.settings.modifiedPrompt = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
+                .setName("Prompt for deleted files")
+                .setDesc(
+                    "Prompt used when generating summaries for deleted files."
+                )
+                .addTextArea((text) =>
+                    text
+                        .setValue(plugin.settings.deletedPrompt)
+                        .onChange(async (value) => {
+                            plugin.settings.deletedPrompt = value;
+                            await plugin.saveSettings();
+                        })
                 );
 
             new Setting(containerEl)

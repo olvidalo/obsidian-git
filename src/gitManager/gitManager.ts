@@ -1,4 +1,5 @@
 import { type App, moment } from "obsidian";
+import OpenAI from "openai";
 import type ObsidianGit from "../main";
 import type {
     BranchInfo,
@@ -256,6 +257,58 @@ export abstract class GitManager {
         return res;
     }
 
+    async getChangeSummary(
+        status: FileStatusResult,
+        diff: string
+    ): Promise<string> {
+        const prompts: Record<string, string> = {
+            M: this.plugin.settings.modifiedPrompt,
+            A: this.plugin.settings.addedPrompt,
+            D: this.plugin.settings.deletedPrompt,
+        };
+
+        let statusDesc;
+
+        if (status.index === "R") {
+            statusDesc = `Renamed \`${status.from}\` to \`${status.path}\``;
+        } else if (prompts.hasOwnProperty(status.index)) {
+            const openai = new OpenAI({
+                apiKey: this.plugin.settings.openaiApiKey,
+                dangerouslyAllowBrowser: true,
+            });
+            try {
+                const completion = await openai.chat.completions.create({
+                    model: this.plugin.settings.openaiModel,
+                    messages: [
+                        {
+                            role: "system",
+                            content: this.plugin.settings.openaiSystemPrompt,
+                        },
+                        {
+                            role: "user",
+                            content: prompts[status.index] + "\n\n" + diff,
+                        },
+                    ],
+                    temperature: 0.5,
+                    max_tokens: 150,
+                });
+                statusDesc = completion?.choices?.[0]?.message?.content?.trim();
+            } catch (e) {
+                console.error("Error generating prompt description: ", e);
+            }
+        }
+
+        const words: Record<string, string> = {
+            M: "Modified ",
+            A: "Added ",
+            D: "Deleted ",
+        };
+
+        return statusDesc
+            ? statusDesc
+            : `${words[status.index]} ${status.path}`;
+    }
+
     async formatCommitMessage(template: string): Promise<string> {
         let status: Status | undefined;
         if (template.includes("{{numFiles}}")) {
@@ -294,6 +347,32 @@ export abstract class GitManager {
             }
 
             template = template.replace("{{files}}", files);
+        }
+
+        if (template.includes("{{changeSummaries}}")) {
+            const statusVal = status ?? (await this.status());
+            const changeSummaryPromises = statusVal.staged
+                .filter(
+                    (status) => !status.path.startsWith(this.app.vault.configDir)
+                )
+                .map(async (e) => {
+                    const diff = await this.getDiffString(e.path, true);
+                    return await this.getChangeSummary(e, diff);
+                });
+            const changeSummaries = await Promise.all(changeSummaryPromises);
+            let formattedSummaries: string[];
+            if (changeSummaries.length > 1) {
+                formattedSummaries = changeSummaries.map(
+                    (changeSummary) => `- ${changeSummary}`
+                );
+            } else {
+                formattedSummaries = changeSummaries;
+            }
+
+            template = template.replace(
+                "{{changeSummaries}}",
+                formattedSummaries.join("\n\n")
+            );
         }
 
         template = template.replace(

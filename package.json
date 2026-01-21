@@ -1,6 +1,6 @@
 {
     "name": "obsidian-git",
-    "version": "2.36.1",
+    "version": "2.36.1-ai1",
     "description": "Integrate Git version control with automatic backup and other advanced features in Obsidian.md",
     "main": "main.js",
     "scripts": {
@@ -63,6 +63,7 @@
         "diff3": "^0.0.4",
         "isomorphic-git": "^1.32.2",
         "js-sha256": "^0.9.0",
+        "openai": "^4.77.0",
         "simple-git": "github:Vinzent03/git-js#release",
         "supports-color": "^9.4.0",
         "svelte": "^5.37.1"
