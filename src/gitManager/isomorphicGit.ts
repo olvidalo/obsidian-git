@@ -1129,7 +1129,8 @@ export class IsomorphicGit extends GitManager {
     async getDiffString(
         filePath: string,
         stagedChanges = false,
-        hash?: string
+        hash?: string,
+        contextLines?: number
     ): Promise<string> {
         const vaultPath = this.getRelativeVaultPath(filePath);
 
@@ -1175,7 +1176,10 @@ export class IsomorphicGit extends GitManager {
             const diff = createPatch(
                 vaultPath,
                 previousContent ?? "",
-                commitContent ?? ""
+                commitContent ?? "",
+                undefined,
+                undefined,
+                contextLines !== undefined ? { context: contextLines } : undefined
             );
             return diff;
         }
@@ -1208,7 +1212,10 @@ export class IsomorphicGit extends GitManager {
             const diff = createPatch(
                 vaultPath,
                 headContent ?? "",
-                stagedContent
+                stagedContent,
+                undefined,
+                undefined,
+                contextLines !== undefined ? { context: contextLines } : undefined
             );
             return diff;
         } else {
@@ -1219,7 +1226,14 @@ export class IsomorphicGit extends GitManager {
                 workdirContent = "";
             }
 
-            const diff = createPatch(vaultPath, stagedContent, workdirContent);
+            const diff = createPatch(
+                vaultPath,
+                stagedContent,
+                workdirContent,
+                undefined,
+                undefined,
+                contextLines !== undefined ? { context: contextLines } : undefined
+            );
             return diff;
         }
     }

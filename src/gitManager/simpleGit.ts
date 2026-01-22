@@ -1019,12 +1019,23 @@ export class SimpleGit extends GitManager {
     async getDiffString(
         filePath: string,
         stagedChanges = false,
-        hash?: string
+        hash?: string,
+        contextLines?: number
     ): Promise<string> {
-        if (stagedChanges)
-            return await this.git.diff(["--cached", "--", filePath]);
+        const contextArg = contextLines !== undefined ? `-U${contextLines}` : undefined;
+        if (stagedChanges) {
+            const args = ["--cached"];
+            if (contextArg) args.push(contextArg);
+            args.push("--", filePath);
+            return await this.git.diff(args);
+        }
         if (hash) return await this.git.show([`${hash}`, "--", filePath]);
-        else return await this.git.diff(["--", filePath]);
+        else {
+            const args: string[] = [];
+            if (contextArg) args.push(contextArg);
+            args.push("--", filePath);
+            return await this.git.diff(args);
+        }
     }
 
     async diff(

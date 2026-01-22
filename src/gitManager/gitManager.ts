@@ -117,7 +117,8 @@ export abstract class GitManager {
     abstract getDiffString(
         filePath: string,
         stagedChanges: boolean,
-        hash?: string
+        hash?: string,
+        contextLines?: number
     ): Promise<string>;
 
     abstract getLastCommitTime(): Promise<Date | undefined>;
@@ -371,7 +372,7 @@ export abstract class GitManager {
                     (status) => !status.path.startsWith(this.app.vault.configDir)
                 )
                 .map(async (e) => {
-                    const diff = await this.getDiffString(e.path, true);
+                    const diff = await this.getDiffString(e.path, true, undefined, 999999);
                     return await this.getChangeSummary(e, diff);
                 });
             const changeSummaries = await Promise.all(changeSummaryPromises);
