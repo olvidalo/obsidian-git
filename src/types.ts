@@ -67,6 +67,7 @@ export interface ObsidianGitSettings {
     openaiBaseUrl: string;
     openaiModel: string;
     openaiMaxTokens: number;
+    openaiEnableLogging: boolean;
     openaiSystemPrompt: string;
     modifiedPrompt: string;
     addedPrompt: string;

@@ -425,6 +425,20 @@ export class ObsidianGitSettingsTab extends PluginSettingTab {
                 });
 
             new Setting(containerEl)
+                .setName("Enable prompt logging")
+                .setDesc(
+                    "Log API requests and responses to the developer console for debugging."
+                )
+                .addToggle((toggle) =>
+                    toggle
+                        .setValue(plugin.settings.openaiEnableLogging)
+                        .onChange(async (value) => {
+                            plugin.settings.openaiEnableLogging = value;
+                            await plugin.saveSettings();
+                        })
+                );
+
+            new Setting(containerEl)
                 .setName("System prompt")
                 .setDesc(
                     "System prompt that sets the behavior for the AI model."

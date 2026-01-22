@@ -273,6 +273,19 @@ export abstract class GitManager {
         } else if (prompts.hasOwnProperty(status.index)) {
             const baseUrl =
                 this.plugin.settings.openaiBaseUrl || "https://api.openai.com/v1";
+            const messages = [
+                {
+                    role: "system",
+                    content: this.plugin.settings.openaiSystemPrompt,
+                },
+                {
+                    role: "user",
+                    content: prompts[status.index] + "\n\n" + diff,
+                },
+            ];
+            if (this.plugin.settings.openaiEnableLogging) {
+                console.log("OpenAI request:", { model: this.plugin.settings.openaiModel, messages });
+            }
             try {
                 const response = await requestUrl({
                     url: `${baseUrl}/chat/completions`,
@@ -283,21 +296,15 @@ export abstract class GitManager {
                     },
                     body: JSON.stringify({
                         model: this.plugin.settings.openaiModel,
-                        messages: [
-                            {
-                                role: "system",
-                                content: this.plugin.settings.openaiSystemPrompt,
-                            },
-                            {
-                                role: "user",
-                                content: prompts[status.index] + "\n\n" + diff,
-                            },
-                        ],
+                        messages,
                         temperature: 0.5,
                         max_tokens: this.plugin.settings.openaiMaxTokens,
                     }),
                 });
                 statusDesc = response?.json?.choices?.[0]?.message?.content?.trim();
+                if (this.plugin.settings.openaiEnableLogging) {
+                    console.log("OpenAI response:", response?.json);
+                }
             } catch (e) {
                 console.error("Error generating prompt description: ", e);
             }
