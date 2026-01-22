@@ -260,6 +260,9 @@ export abstract class GitManager {
         status: FileStatusResult,
         diff: string
     ): Promise<string> {
+        if (this.plugin.settings.openaiEnableLogging) {
+            console.log("getChangeSummary called:", { status, diffLength: diff.length });
+        }
         const prompts: Record<string, string> = {
             M: this.plugin.settings.modifiedPrompt,
             A: this.plugin.settings.addedPrompt,
@@ -270,7 +273,7 @@ export abstract class GitManager {
 
         if (status.index === "R") {
             statusDesc = `Renamed \`${status.from}\` to \`${status.path}\``;
-        } else if (prompts.hasOwnProperty(status.index)) {
+        } else if (Object.prototype.hasOwnProperty.call(prompts, status.index)) {
             const baseUrl =
                 this.plugin.settings.openaiBaseUrl || "https://api.openai.com/v1";
             const messages = [
